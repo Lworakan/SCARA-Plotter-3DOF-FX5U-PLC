@@ -18,7 +18,14 @@ except Exception as e:
     exit(1)
 
 # Read trajectory from CSV
-csv_path = r'C:\Users\worak\Documents\GitHub\Plotter-3DOF-PLC\motor_commands_go2.csv'
+# csv_path = r'C:\Users\worak\Documents\GitHub\Plotter-3DOF-PLC\imotor_commands_frab_pen.csv'
+# csv_path = r'C:\Users\worak\Documents\GitHub\Plotter-3DOF-PLC\imotor_commands_nut_head_20cm_2_wait_eye_pen_flip.csv'
+# csv_path = r'C:\Users\worak\Documents\GitHub\Plotter-3DOF-PLC\motor_commands_nuttt_333_fn.csv'
+csv_path = r'C:\Users\worak\Documents\GitHub\Plotter-3DOF-PLC\motor_command_grid_3_scale.csv'
+# csv_path = r'C:\Users\worak\Documents\GitHub\Plotter-3DOF-PLC\motor_commands_frab10.csv'
+# csv_path = r'C:\Users\worak\Documents\GitHub\Plotter-3DOF-PLC\motor_commands_day4.csv'
+# csv_path = r'C:\Users\worak\Documents\GitHub\Plotter-3DOF-PLC\imotor_commands_grid_3.csv'
+# csv_path = r'C:\Users\worak\Documents\GitHub\Plotter-3DOF-PLC\motor_commands_kid.csv'
 
 print("Starting trajectory execution...")
 
@@ -37,7 +44,7 @@ with open(csv_path, 'r') as csvfile:
         #     elapsed_time = time.time() - start_time
         #     if elapsed_time >= target_time:
         #         break
-        time.sleep(0.02)  # Sleep 1ms to avoid busy waiting
+        time.sleep(0.02)  # Removed sleep to prevent timing drift
         
         # Extract values from CSV row
         # Assuming mapping:
@@ -46,12 +53,24 @@ with open(csv_path, 'r') as csvfile:
         # D104 = J2_Steps (position motor 2)
         # D106 = J2_Hz (velocity motor 2)
         
-        d100_value = int(row['J2_Pos'])
-        d102_value = int(float(row['J2_Hz']))
-        d104_value = int(row['J1_Pos'])
-        d106_value = int(float(row['J1_Hz']))
+        # Using int(float(...)) to handle strings like "250.0"
+        # Correct Mapping based on scara_grid_test.py:
+        # D100 = J1 (Motor 1)
+        # D104 = J2 (Motor 2)
+        d100_value = int(row['J1_Pos'])
+        d102_value = int(float(row['J1_Hz']))
+        d104_value = int(row['J2_Pos'])
+        d106_value = int(float(row['J2_Hz']))
+        on_off = int(float(row['Pen'])) 
         
         try:
+            # Write data first
+            mc.write_sign_Dword(s, headdevice='D100', 
+                                data_list=[d100_value, d102_value, d104_value, d106_value], 
+                                signed_type=True)
+
+            mc.write_bit(s, headdevice='M4', data_list=[on_off])
+
             # Check if there's movement and M3 is currently 0
             if d100_value != 0 or d104_value != 0:
                 m3_status = mc.read_bit(s, headdevice='M3', length=1)
@@ -61,10 +80,6 @@ with open(csv_path, 'r') as csvfile:
                         m3_enabled = True
                         print(f"M3 trigger started at row {i}")
             
-            mc.write_sign_Dword(s, headdevice='D100', 
-                                data_list=[d100_value, d102_value, d104_value, d106_value], 
-                                signed_type=True)
-            
         except Exception as e:
             print(f"\nError at row {i}: {e}")
             import traceback
@@ -72,11 +87,14 @@ with open(csv_path, 'r') as csvfile:
             print("Stopping execution")
             break
         
-        # Print progress every 100 rows
-        if i % 100 == 0:
+        
+        print(f"serving row {i+1} ,:, {on_off}", end='\r')
+        if i % 10 == 0:
             actual_time = time.time() - start_time
             print(f"Row {i} at {actual_time:.3f}s (target: {target_time:.3f}s): D100={d100_value}, D102={d102_value}, D104={d104_value}, D106={d106_value}")
 
+
+mc.write_bit(s, headdevice='M4', data_list=[0])
 print("Trajectory execution complete!")
 
 mc.write_bit(s, headdevice='M3', data_list=[0])

@@ -269,10 +269,10 @@ def main():
             
         elif choice == "3":
             print("Manual motor control mode")
-            d100_value = int(input("Enter value for D100 (Motor 1 Position): "))
-            d102_value = int(input("Enter value for D102 (Motor 1 Velocity): "))
-            d104_value = int(input("Enter value for D104 (Motor 2 Position): "))
-            d106_value = int(input("Enter value for D106 (Motor 2 Velocity): "))
+            d100_value = int(input("Enter value for D100 (Motor 2 Position): "))
+            d102_value = int(input("Enter value for D102 (Motor 2 Velocity): "))
+            d104_value = int(input("Enter value for D104 (Motor 1 Position): "))
+            d106_value = int(input("Enter value for D106 (Motor 1 Velocity): "))
             
             robot.send_motor_commands(d100_value, d102_value, d104_value, d106_value)
             
