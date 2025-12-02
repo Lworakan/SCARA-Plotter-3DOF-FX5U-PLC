@@ -260,7 +260,13 @@ def main():
         choice = input("\nEnter choice (1-3): ").strip()
         
         if choice == "1":
-            robot.run_grid_test()
+            import subprocess
+            print("\n▶ Running trajectory_sender_grid_3.py ...")
+            subprocess.run([
+                "python3",
+                "/Users/worakanlasudee/Documents/GitHub/SCARA-Plotter-3DOF-FX5U-PLC/trajectory_sender_grid_3.py"
+            ])
+            return
             
         elif choice == "2":
             x = float(input("Enter X coordinate (mm): "))
