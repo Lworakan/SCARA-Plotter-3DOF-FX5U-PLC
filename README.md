@@ -78,6 +78,7 @@ This project provides code and resources for controlling a SCARA robot plotter u
 ## Requirements
 - Python 3.x
 - `rk_mcprotocol` Python library (for PLC communication)
+https://github.com/t26744021/rkmcprotocol.git
 - Mitsubishi FX5U PLC
 - GX Works3 software (for ladder logic)
 
