@@ -1,0 +1,5 @@
+Test Type,Result,Pass/Fail
+Connection,Connected,Pass
+Write Speed,48.92 Hz,Pass
+Data Integrity,0 errors,Pass
+Timing Sync,Drift 0.3ms,Pass
