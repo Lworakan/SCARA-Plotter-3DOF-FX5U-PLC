@@ -27,10 +27,21 @@ csv_path = r'C:\Users\worak\Documents\GitHub\Plotter-3DOF-PLC\motor_command_grid
 # csv_path = r'C:\Users\worak\Documents\GitHub\Plotter-3DOF-PLC\imotor_commands_grid_3.csv'
 # csv_path = r'C:\Users\worak\Documents\GitHub\Plotter-3DOF-PLC\motor_commands_kid.csv'
 
-print("Starting trajectory execution...")
+print("Waiting for M3 to be enabled on PLC...")
+
+# Wait for M3 to be enabled on PLC
+while True:
+    try:
+        m3_status = mc.read_bit(s, headdevice='M3', length=1)
+        if m3_status and m3_status[0] == 1:
+            print("M3 is enabled! Starting trajectory execution...")
+            break
+        time.sleep(0.1)  # Check every 100ms
+    except Exception as e:
+        print(f"Error reading M3: {e}")
+        time.sleep(0.5)
 
 start_time = time.time()
-m3_enabled = False  # Track M3 state
 
 with open(csv_path, 'r') as csvfile:
     reader = csv.DictReader(csvfile)
@@ -70,15 +81,6 @@ with open(csv_path, 'r') as csvfile:
                                 signed_type=True)
 
             mc.write_bit(s, headdevice='M4', data_list=[on_off])
-
-            # Check if there's movement and M3 is currently 0
-            if d100_value != 0 or d104_value != 0:
-                m3_status = mc.read_bit(s, headdevice='M3', length=1)
-                if m3_status and m3_status[0] == 0:
-                    mc.write_bit(s, headdevice='M3', data_list=[1])
-                    if not m3_enabled:
-                        m3_enabled = True
-                        print(f"M3 trigger started at row {i}")
             
         except Exception as e:
             print(f"\nError at row {i}: {e}")
@@ -96,9 +98,7 @@ with open(csv_path, 'r') as csvfile:
 
 mc.write_bit(s, headdevice='M4', data_list=[0])
 print("Trajectory execution complete!")
-
-mc.write_bit(s, headdevice='M3', data_list=[0])
-print("M3 trigger disabled")
+print("Note: M3 is controlled on PLC side - not disabled by this script")
 
 # Close connection
 # mc.close_socket(s)
